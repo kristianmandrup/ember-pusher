@@ -6,7 +6,7 @@ App.Pusher = Ember.Object.extend({
     this.service = new Pusher(this.get("key"));
 
     this.service.connection.bind('connected', function() { _this.connected(); });
-    this.service.bind_all(function(eventName, data) { _this.handleEvent(eventName, data); });
+    this.service.bind_all(function(eventName, data) { _this.handlePusherEvent(eventName, data); });
   },
 
   connected: function() {

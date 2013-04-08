@@ -28,14 +28,7 @@ Here’s what we’re going to end up with in a route:
 
 ```javascript
 App.MyRoute = Ember.Route.extend({
-  // subscribe/unsubscribe to a pusher channel
-  // when we enter/exit this part of the app
-  activate: function() {
-    this.get("route_pusher").subscribe("a-channel");
-  },
-  deactivate: function() {
-    this.get("route_pusher").unsuscribe("a-channel");
-  },
+  pusher_channel: "my-pusher-channel",
 
   // handle event from pusher just like normal actions
   events: {
@@ -45,6 +38,8 @@ App.MyRoute = Ember.Route.extend({
   }
 });
 ```
+
+Default channel name is 'event_channel'. Override this via `App.EventPusher.pusher_channel = 'my-default-channel`
 
 Now in your app.js or wherever you kick-off your app, we can re-open App.Pusher to set the API key:
 
@@ -74,13 +69,21 @@ It should be possible to extend `DS.Model` to auto-update on pusher events sent 
 * `createRecord(attributes hash)`, when a new record has been created on the server.
 * `deleteRecord()` when the record has been deleted on the server
 
-With pusherable, pusher should send a message of the form (User record example): 
+With `pusherable`, pusher should send a message of the form (User record example): 
 
 * create: "User.create", self.to_json
 * destroy: "User.destroy", self.to_json
 * update: "User.update", self.to_json
 
-See `model_pusher.js` for some sample code that should get you pretty far in achieving this!
+See `store_pusher.js` for the Ember pusherable client code ;) StorePusher is automatically registered with every store, similar to how the RoutePusher is connected to all Controllers and Routes.
+
+To customize the Pusher channel name:
+
+```javascript
+App.Store.reopen({
+  pusher_channel: "my-rest-channel"
+});
+```
 
 Enjoy :)
 
