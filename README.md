@@ -31,10 +31,10 @@ App.MyRoute = Ember.Route.extend({
   // subscribe/unsubscribe to a pusher channel
   // when we enter/exit this part of the app
   activate: function() {
-    this.get("pusher").subscribe("a-channel");
+    this.get("route_pusher").subscribe("a-channel");
   },
   deactivate: function() {
-    this.get("pusher").unsuscribe("a-channel");
+    this.get("route_pusher").unsuscribe("a-channel");
   },
 
   // handle event from pusher just like normal actions
@@ -67,6 +67,20 @@ Simply require `ember-pusher.js` in your Assets manifest:
 To have Rails trigger pusher events when models are created, updated or deleted:
 
 See [pusherable](https://github.com/tonycoco/pusherable) or my fork with *Mongoid* integration at [pusherable](https://github.com/kristianmandrup/pusherable)
+
+It should be possible to extend `DS.Model` to auto-update on pusher events sent from the server.
+
+* `reload()` when the record has been updated on the server.
+* `createRecord(attributes hash)`, when a new record has been created on the server.
+* `deleteRecord()` when the record has been deleted on the server
+
+With pusherable, pusher should send a message of the form (User record example): 
+
+* create: "User.create", self.to_json
+* destroy: "User.destroy", self.to_json
+* update: "User.update", self.to_json
+
+See `model_pusher.js` for some sample code that should get you pretty far in achieving this!
 
 Enjoy :)
 
