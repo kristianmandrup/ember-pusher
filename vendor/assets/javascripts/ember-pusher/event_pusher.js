@@ -1,13 +1,4 @@
 App.EventPusher = App.Pusher.extend({
-  pusher_channel: 'event_channel',
-
-  activate: function() {
-    this.get("pusher").subscribe(this.get('pusher_channel'));
-  },
-  deactivate: function() {
-    this.get("pusher").unsuscribe(this.get('pusher_channel'));
-  },
-
   handlePusherEvent: function(eventName, data) {
     var router, unhandled;
 
@@ -21,6 +12,17 @@ App.EventPusher = App.Pusher.extend({
       unhandled = e.message.match(/Nothing handled the event/);
       if (!unhandled) { throw e };
     }
+  }
+});
+
+App.EventPusherActivation = Ember.Mixin.create({
+  pusher_channel: 'event_channel',
+
+  activate: function() {
+    this.get("pusher").subscribe(this.get('pusher_channel'));
+  },
+  deactivate: function() {
+    this.get("pusher").unsuscribe(this.get('pusher_channel'));
   }
 });
 

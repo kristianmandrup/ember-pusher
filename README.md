@@ -27,7 +27,7 @@ Or install it yourself as:
 Here’s what we’re going to end up with in a route:
 
 ```javascript
-App.MyRoute = Ember.Route.extend({
+App.MyRoute = Ember.Route.extend(App.EventPusherActivation, {
   pusher_channel: "my-pusher-channel",
 
   // handle event from pusher just like normal actions
@@ -80,10 +80,18 @@ See `store_pusher.js` for the Ember pusherable client code ;) StorePusher is aut
 To customize the Pusher channel name:
 
 ```javascript
-App.Store.reopen({
+App.Store.reopen(StorePusherEventHandler, StorePusherActivation, {
   pusher_channel: "my-rest-channel"
 });
 ```
+
+Note: You should be able to override the default (main) store used by the StorePusher like so.
+
+App.MyOtherStorePusher = App.StorePusher.extend({
+  store: function() {
+    this.get("container").lookup("store:other");
+  }  
+})
 
 Enjoy :)
 

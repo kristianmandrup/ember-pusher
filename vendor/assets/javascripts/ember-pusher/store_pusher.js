@@ -1,14 +1,4 @@
 App.StorePusher = App.Pusher.extend({
-  pusher_channel: "rest-channel",
-  // subscribe/unsubscribe to a pusher channel
-  // when we enter/exit this part of the app
-  activate: function() {
-    this.get("store_pusher").subscribe(this.get('pusher_channel'));
-  },
-  deactivate: function() {
-    this.get("store_pusher").unsuscribe(this.get('pusher_channel'));
-  },
-
   handlePusherEvent: function(eventName, data) {
     var type, id;
 
@@ -19,9 +9,9 @@ App.StorePusher = App.Pusher.extend({
     data = data[type] if data[type]
     id   = data['id']
 
-    if (isModelEvent('create'))   { this.wasCreated(type, data) }
-    if (isModelEvent('update'))   { this.wasUpdated(type, id, data) }
-    if (isModelEvent('destroy'))  { this.wasDestroyed(type, id) }
+    if (isModelEvent('create'))   { this.store().wasCreated(type, data) }
+    if (isModelEvent('update'))   { this.store().wasUpdated(type, id, data) }
+    if (isModelEvent('destroy'))  { this.store().wasDestroyed(type, id) }
   },
 
   isModelEvent: function(eventName, name) {
@@ -29,6 +19,24 @@ App.StorePusher = App.Pusher.extend({
     return eventName.match(eventMatchExpr);
   },
 
+  store: function() {
+    this.get("container").lookup("store:main");
+  }
+});
+
+App.StorePusherActivation = Ember.Mixin.create({
+  pusher_channel: "rest-channel",
+  // subscribe/unsubscribe to a pusher channel
+  // when we enter/exit this part of the app
+  activate: function() {
+    this.get("store_pusher").subscribe(this.get('pusher_channel'));
+  },
+  deactivate: function() {
+    this.get("store_pusher").unsuscribe(this.get('pusher_channel'));
+  }
+}
+
+App.StorePusherEventHandler = Ember.Mixin.create({
   wasCreated: function(type, data) {
     this.createRecord(type, data);
   },
@@ -57,8 +65,8 @@ App.StorePusher = App.Pusher.extend({
     } catch (e) {
       return null;
     }    
-  }  
-});
+  }    
+ });
 
 Ember.Application.initializer({
   name: "store_pusher",
