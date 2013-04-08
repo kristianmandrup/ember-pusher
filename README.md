@@ -66,9 +66,9 @@ See [pusherable](https://github.com/tonycoco/pusherable) or my fork with *Mongoi
 We will extend an Ember Store` to auto-update on pusher events sent from the server.
 We want to execute the following:
 
-* `reload()` when the record has been updated on the server.
-* `createRecord(attributes hash)`, when a new record has been created on the server.
-* `deleteRecord()` when the record has been deleted on the server
+* `didUpdateRecord()` when the record has been updated on the server.
+* `didCreateRecord()`, when a new record has been created on the server.
+* `didDeleteRecord()` when the record has been deleted on the server
 
 With `pusherable`, pusher should send a message of the form (`User` record example): 
 
@@ -77,6 +77,29 @@ With `pusherable`, pusher should send a message of the form (`User` record examp
 * update: `"User.update", self.to_json`
 
 In the future, we might want to provide bulk operations/events as well for improved performance :)
+
+To achieve this funcitonality, ember-pusher extends Basic store like this, so that we can signal to the Adapter that a record was modified in the given way, using `did<Event>Record` without doing a real server sync for that record. 
+
+```javascript
+DS.Adapter.reopen({
+  hasCreatedRecord: function(store, type, record) {
+    var data = this.mockJSON(type, record);  
+    this.didCreateRecord(store, type, record, data);
+  },
+  // ...
+});
+```
+
+The store then get some `was<Event>` methods mixed in, that eah call the equivalent `has<Event>` method on the store adapter.
+
+```javascript
+  wasCreated: function(type, id, data) {
+    var record = this.findTheRecord(type, id);
+    if (this.isRecord(record)) {
+      this.get('adapter').hasCreatedRecord(this, type, data);  
+    }    
+  },
+```
 
 See `store_pusher.js` for the Ember pusherable client code ;) 
 
@@ -103,7 +126,7 @@ App.MyOtherStorePusher = App.StorePusher.extend({
   }
 })
 
-Enjoy :)
+Note that this code has not yet been tested, but I hope the architecture is close to something that would work! Please help out testing, debugging and improving the StorePusher code :) Would be awesome, similar to what we see with the *MeteorJS* framework!!!
 
 ## Contributing
 

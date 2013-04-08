@@ -5,13 +5,13 @@ App.StorePusher = App.Pusher.extend({
     // ignore pusher internal events
     if (eventName.match(/^pusher:/)) { return; }
 
-    type = eventName.split('.')[0].replace(/::/, '.')
-    data = data[type] if data[type]
-    id   = data['id']
+    type = eventName.split('.')[0].replace(/::/, '.');
+    data = data[type] if data[type];
+    id   = data['id'];
 
     if (isModelEvent('create'))   { this.store().wasCreated(type, data) }
     if (isModelEvent('update'))   { this.store().wasUpdated(type, id, data) }
-    if (isModelEvent('destroy'))  { this.store().wasDestroyed(type, id) }
+    if (isModelEvent('destroy'))  { this.store().wasDestroyed(type, id, data) }
   },
 
   isModelEvent: function(eventName, name) {
@@ -36,23 +36,46 @@ App.StorePusherActivation = Ember.Mixin.create({
   }
 }
 
+// Simulate server sync
+// We simply notify the store that the server "did" the specified event on the model
+// This is very similar to how the Fixture adapter works, except no reason to simulate a remote call.
+DS.Adapter.reopen({
+  hasCreatedRecord: function(store, type, record, data) {
+    var json = this.mockJSON(type, record);  
+    this.didCreateRecord(store, type, record, json);
+  },
+
+  hasUpdatedRecord: function(store, type, record, data) {
+    var json = this.mockJSON(type, record);
+    this.didUpdateRecord(store, type, record, json);
+  },
+
+  hasDeletedRecord: function(store, type, record, data) {    
+    var json = this.mockJSON(type, record);
+    this.didDeleteRecord(store, type, json);
+  }
+});
+
 App.StorePusherEventHandler = Ember.Mixin.create({
-  wasCreated: function(type, data) {
-    this.createRecord(type, data);
+  wasCreated: function(type, id, data) {
+    var record = this.findTheRecord(type, id);
+    if (this.isRecord(record)) {
+      this.get('adapter').hasCreatedRecord(this, type, record, data);  
+    }    
   },
 
   wasUpdated: function(type, id, data) {    
-    var record = this.findTheRecord(type, id)
-    if (isRecord(record)) {
-      record.reload();
-    }      
+    var record = this.findTheRecord(type, id);
+    if (this.isRecord(record)) {
+      this.get('adapter').hasUpdatedRecord(this, type, record, data);
+    }
   },
 
-  wasDestroyed: function(type, id) {
-    var record = this.findTheRecord(type, id)
-    if (isRecord(record)) {
-      record.deleteRecord();
-    }      
+  wasDestroyed: function(type, id, data) {
+    var record = this.findTheRecord(type, id);
+    if (this.isRecord(record)) {
+      this.get('adapter').hasDeletedRecord(this, type, record, data);
+    }
   },
 
   isRecord: function(obj) {
