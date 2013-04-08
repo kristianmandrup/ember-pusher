@@ -20,7 +20,7 @@ App.StorePusher = App.Pusher.extend({
   },
 
   store: function() {
-    this.get("container").lookup("store:main");
+    return this.get("container").lookup("store:main");
   }
 });
 
@@ -56,7 +56,7 @@ App.StorePusherEventHandler = Ember.Mixin.create({
   },
 
   isRecord: function(obj) {
-    Ember.typeOf(obj) == "instance";
+    return Ember.typeOf(obj) == "instance";
   },  
 
   findTheRecord: function(type, id) {
