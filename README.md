@@ -63,19 +63,29 @@ To have Rails trigger pusher events when models are created, updated or deleted:
 
 See [pusherable](https://github.com/tonycoco/pusherable) or my fork with *Mongoid* integration at [pusherable](https://github.com/kristianmandrup/pusherable)
 
-It should be possible to extend `DS.Model` to auto-update on pusher events sent from the server.
+We will extend an Ember Store` to auto-update on pusher events sent from the server.
+We want to execute the following:
 
 * `reload()` when the record has been updated on the server.
 * `createRecord(attributes hash)`, when a new record has been created on the server.
 * `deleteRecord()` when the record has been deleted on the server
 
-With `pusherable`, pusher should send a message of the form (User record example): 
+With `pusherable`, pusher should send a message of the form (`User` record example): 
 
-* create: "User.create", self.to_json
-* destroy: "User.destroy", self.to_json
-* update: "User.update", self.to_json
+* create: `"User.create", self.to_json`
+* destroy: `"User.destroy", self.to_json`
+* update: `"User.update", self.to_json`
 
-See `store_pusher.js` for the Ember pusherable client code ;) StorePusher is automatically registered with every store, similar to how the RoutePusher is connected to all Controllers and Routes.
+In the future, we might want to provide bulk operations/events as well for improved performance :)
+
+See `store_pusher.js` for the Ember pusherable client code ;) 
+
+`App.StorePusher` is automatically registered with every store, similar to how the `EventPusher` is connected to all controllers and routes.
+
+For StorePusher, two mixins are provided
+
+* App.StorePusherActivation (activate/deactivate pusher subscription)
+* App.StorePusherEventHandler (handle store pusher events on store)
 
 To customize the Pusher channel name:
 
@@ -89,8 +99,8 @@ Note: You should be able to override the default (main) store used by the StoreP
 
 App.MyOtherStorePusher = App.StorePusher.extend({
   store: function() {
-    this.get("container").lookup("store:other");
-  }  
+    return this.get("container").lookup("store:other");
+  }
 })
 
 Enjoy :)
