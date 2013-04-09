@@ -120,13 +120,42 @@ App.Store.reopen(StorePusherEventHandler, StorePusherActivation, {
 
 Note: You should be able to override the default (main) store used by the StorePusher like so.
 
+```javascript
 App.MyOtherStorePusher = App.StorePusher.extend({
   store: function() {
     return this.get("container").lookup("store:other");
   }
 })
+```
 
 Note that this code has not yet been tested, but I hope the architecture is close to something that would work! Please help out testing, debugging and improving the StorePusher code :) Would be awesome, similar to what we see with the *MeteorJS* framework!!!
+
+Been tweaking more with the code, looking into *ember-data* for some guidance... this is way to hardcore/advanced that I can figure out how it needs to be tweaked to work correctly with *ember-data*. The main problem as I see it, is how to load a record from the store, without having it make a request to the server.
+
+Looks like it is better to do it on the model!
+
+* `reload()` for update
+* `createRecord(json)` for create
+* `deleteRecord` for delete
+
+You can retrieve DS.Model instances from the store in several ways. To retrieve
+a record for a specific id, use the `find()` method:
+
+     var record = MyApp.store.find(MyApp.Contact, 123);
+
+ By default, the store will talk to your backend using a standard REST mechanism.
+ You can customize how the store talks to your backend by specifying a custom adapter:
+
+     MyApp.store = DS.Store.create({
+       adapter: 'MyApp.CustomAdapter'
+     });
+
+Perhaps we should switch adapter, to a fixture like adapter just before we retrieve the record, in order to avoid a round-trip back to the server. Then after "manually syncing" with the data retrieved from pusher, we put the REST adapter back on. However, what then with any changes in the meantime that *should* be synced with the back-end. Yikes! There must be a simpler solution ;)
+
+Hmmm... I think the solution is simply to do a find, followed perhaps by a reload.
+This is a "forced sync". For create, simply call createRecord with an extra attribute `reverseSync: true` (also defined on the model), then on the server put logic to not create the record if `reverseSync: true` but still send back confirmation "as if" a record was created on the backend!
+
+What do the hardcore *data* guys out there think about this approach? Would it work!?
 
 ## Contributing
 

@@ -53,26 +53,49 @@ DS.Adapter.reopen({
   hasDeletedRecord: function(store, type, record, data) {    
     var json = this.mockJSON(type, record);
     this.didDeleteRecord(store, type, json);
+  },
+
+  findIt: function(store, type, payload, id) {
+    this.didFindRecord(store, type, payload, id);
   }
+
+  didFindRecord: function(store, type, payload, id) {
+    var loader = DS.loaderFor(store);
+
+    loader.load = function(type, data, prematerialized) {
+      prematerialized = prematerialized || {};
+      prematerialized.id = id;
+
+      return store.load(type, data, prematerialized);
+    };
+
+    get(this, 'serializer').extractOneRecord(loader, payload, type);
+  }  
 });
+
+DS.RESTSerializer.reopen({
+  extractOneRecord: function(loader, fixture, type) {
+    this.extractRecordRepresentation(loader, type, fixture);
+  }
+});  
 
 App.StorePusherEventHandler = Ember.Mixin.create({
   wasCreated: function(type, id, data) {
-    var record = this.findTheRecord(type, id);
+    var record = this.findTheRecord(type, data, id);
     if (this.isRecord(record)) {
       this.get('adapter').hasCreatedRecord(this, type, record, data);  
     }    
   },
 
   wasUpdated: function(type, id, data) {    
-    var record = this.findTheRecord(type, id);
+    var record = this.findTheRecord(type, data, id);
     if (this.isRecord(record)) {
       this.get('adapter').hasUpdatedRecord(this, type, record, data);
     }
   },
 
   wasDestroyed: function(type, id, data) {
-    var record = this.findTheRecord(type, id);
+    var record = this.findTheRecord(type, data, id);
     if (this.isRecord(record)) {
       this.get('adapter').hasDeletedRecord(this, type, record, data);
     }
@@ -82,9 +105,9 @@ App.StorePusherEventHandler = Ember.Mixin.create({
     return Ember.typeOf(obj) == "instance";
   },  
 
-  findTheRecord: function(type, id) {
+  findTheRecord: function(type, payload, id) {
     try {
-      return this.find(type, id);  
+      return this.get('adapter').findIt(this, type, payload, id);  
     } catch (e) {
       return null;
     }    
