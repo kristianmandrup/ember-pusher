@@ -150,12 +150,20 @@ a record for a specific id, use the `find()` method:
        adapter: 'MyApp.CustomAdapter'
      });
 
-Perhaps we should switch adapter, to a fixture like adapter just before we retrieve the record, in order to avoid a round-trip back to the server. Then after "manually syncing" with the data retrieved from pusher, we put the REST adapter back on. However, what then with any changes in the meantime that *should* be synced with the back-end. Yikes! There must be a simpler solution ;)
+Looks like this [local storage adapter](https://github.com/rpflorence/ember-localstorage-adapter/blob/master/localstorage_adapter.js) might be useful ;)
 
-Hmmm... I think the solution is simply to do a find, followed perhaps by a reload.
-This is a "forced sync". For create, simply call createRecord with an extra attribute `reverseSync: true` (also defined on the model), then on the server put logic to not create the record if `reverseSync: true` but still send back confirmation "as if" a record was created on the backend!
+Would be nice perhaps with a BrideAdapter, one that saves to localstorage adapter and then to REST adapter. In this bridge adapter, you could then have the option to shut off the REST adapter temporarily, fx using a `serverSync: false` flag on key adapter methods?
 
-What do the hardcore *data* guys out there think about this approach? Would it work!?
+I have started implementing [ember-bridge-adapter](https://github.com/kristianmandrup/ember-bridge-adapter) as a better solution to handle this.
+
+The key model methods should now take an optional options hash, which is passed around to the most essential functions of adapter, store, transaction etc.
+
+Currently two options are supported `syncServer: true` and `serverFirst: true`.
+The `syncServer` option is used to disable syncing with the server.
+serverFirst can be set in order to first try finding the record(s) on the server, before trying in the local storage. 
+
+Important: BridgeAdapter is still very experimental and needs further testing and improvement!!!
+
 
 ## Contributing
 
