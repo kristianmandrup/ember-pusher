@@ -138,6 +138,14 @@ Looks like it is better to do it on the model!
 * `createRecord(json)` for create
 * `deleteRecord` for delete
 
+My issue is [here](https://github.com/emberjs/data/issues/867#issuecomment-16185998)
+
+@darthdeus responded:
+
+For loading records into the store you can just use `store.load` or `store.loadMany`
+
+Hmm.. maybe that would solve it!?
+
 You can retrieve DS.Model instances from the store in several ways. To retrieve
 a record for a specific id, use the `find()` method:
 
